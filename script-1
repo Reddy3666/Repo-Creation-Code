@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        GITHUB_USER = 'Reddy3666'
+        GITHUB_TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxx'
+    }
+
+    parameters {
+        string(name: 'REPO_NAME', defaultValue: 'new-repo-name', description: 'Name of the new GitHub repository')
+        string(name: 'REPO_DESCRIPTION', defaultValue: 'Description of the new repository', description: 'Description of the new GitHub repository')
+    }
+
+    stages {
+        stage('Create GitHub Repository') {
+            steps {
+                script {
+                    def repoName = params.REPO_NAME
+                    def repoDescription = params.REPO_DESCRIPTION
+                    def repoData = """{
+                        "name": "${repoName}",
+                        "description": "${repoDescription}",
+                        "private": false,
+                        "auto_init": true
+                    }"""
+
+                    def response = sh(
+                        script: """
+                            curl -u ${GITHUB_USER}:${GITHUB_TOKEN} \
+                            -X POST \
+                            -H "Accept: application/vnd.github.v3+json" \
+                            https://api.github.com/user/repos \
+                            -d '${repoData}'
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    echo "GitHub API Response: ${response}"
+                }
+            }
+        }
+    }
+}
